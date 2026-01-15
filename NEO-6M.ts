@@ -14,7 +14,7 @@ namespace gps {
     let course = ""
     let data: string[] = []
 
-    //% block="GPS init RX %rx TX %tx"
+    //% block="GPS oppsett RX %rx TX %tx"
     export function init(rx: SerialPin, tx: SerialPin): void {
         rxPin = rx
         txPin = tx
