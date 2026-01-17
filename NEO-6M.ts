@@ -1,7 +1,7 @@
 /**
  * NEO-6M GPS
  */
-//% weight=50 color=#FF9900 icon="\uf0ac" block="NEO-6M GPS"
+//% weight=90 color=#FF9900 icon="\uf0ac" block="NEO-6M - GPS"
 //% groups=["Oppsett", "Posisjon", "Bevegelse", "Tid", "Status", "Hendelser"]
 namespace NEO6M {
 
