@@ -1,4 +1,4 @@
-//% weight=100 color=#0f7dbc icon="\uf7bf" block="NEO 6M - GPS"
+//% weight=100 color=#0f7dbc icon="\uf124" block="NEO 6M - GPS"
 namespace gps {
     let rxPin: SerialPin
     let txPin: SerialPin
