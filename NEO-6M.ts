@@ -1,96 +1,174 @@
-//% weight=100 color=#0f7dbc icon="\uf124" block="NEO 6M - GPS"
-namespace gps {
-    let rxPin: SerialPin
-    let txPin: SerialPin
-    let gps_date = ""
-    let gps_time = ""
-    let latitude: number
-    let lat_dir = ""
-    let longitude = 0
-    let long_dir = ""
-    let altitude = 0
-    let speed = 0
-    let hdop = 0
-    let course = ""
-    let data: string[] = []
+/**
+ * NEO-6M GPS
+ */
+//% weight=50 color=#FF9900 icon="\uf0ac" block="NEO-6M GPS"
+//% groups=["Oppsett", "Posisjon", "Bevegelse", "Tid", "Status", "Hendelser"]
+namespace NEO6M {
 
-    //% block="GPS oppsett RX %rx TX %tx"
-    export function init(rx: SerialPin, tx: SerialPin): void {
-        rxPin = rx
-        txPin = tx
-        serial.redirect(rxPin, txPin, 9600)
-        serial.setRxBufferSize(128)
+    // --------------------------------------------------------------------
+    // Interne variabler
+    // --------------------------------------------------------------------
+    let gpsFix = false
+    let latitudeVal = 0
+    let latitudeDirVal = "N"
+    let longitudeVal = 0
+    let longitudeDirVal = "E"
+    let altitudeVal = 0
+    let speedVal = 0
+    let courseVal = 0
+    let hdopVal = 0
+    let satellitesVal = 0
+    let timeVal = ""
+    let dateVal = ""
+
+    // --------------------------------------------------------------------
+    // OPPSETT
+    // --------------------------------------------------------------------
+    //% block="Start GPS | TX %tx RX %rx baud %baud"
+    //% group="Oppsett"
+    //% weight=80
+    export function startGPS(tx: SerialPin, rx: SerialPin, baud: BaudRate) {
+        serial.redirect(rx, tx, baud)
+        // her kan man starte serial-lytting
     }
 
-    serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
-        data = serial.readUntil(serial.delimiters(Delimiters.NewLine)).split(",")
-        if (data[0].includes("RMC")) {
-            gps_date = data[9]
-            gps_time = data[1]
-            latitude = convertDegree(data[3], 2)
-            lat_dir = data[4]
-            longitude = convertDegree(data[5], 3)
-            long_dir = data[6]
-            speed = parseFloat(data[7]) * 1.852
-            course = data[8]
-        } else if (data[0].includes("GGA")) {
-            hdop = parseFloat(data[8])
-            altitude = parseFloat(data[9])
-        }
-    })
-
-    function convertDegree(data: string, num: number) {
-        return parseFloat(data.substr(0, num)) + parseFloat(data.substr(num, data.length - num)) / 60
-    }
-
-    //% block="Tid"
-    export function get_time(): string {
-        return gps_time
-    }
-
-    //% block="Dato"
-    export function get_date(): string {
-        return gps_date
-    }
-
+    // --------------------------------------------------------------------
+    // POSISJON
+    // --------------------------------------------------------------------
     //% block="Breddegrad"
-    export function get_latitude(): number {
-        return latitude
+    //% group="Posisjon"
+    //% weight=70
+    export function latitude(): number {
+        return latitudeVal
     }
 
     //% block="Breddegrad retning"
-    export function get_latitude_dir(): string {
-        return lat_dir
+    //% group="Posisjon"
+    //% weight=69
+    export function latitudeDir(): string {
+        return latitudeDirVal
     }
 
     //% block="Lengdegrad"
-    export function get_longitude(): number {
-        return longitude
+    //% group="Posisjon"
+    //% weight=68
+    export function longitude(): number {
+        return longitudeVal
     }
 
     //% block="Lengdegrad retning"
-    export function get_longitude_dir(): string {
-        return long_dir
+    //% group="Posisjon"
+    //% weight=67
+    export function longitudeDir(): string {
+        return longitudeDirVal
     }
 
-    //% block="Høyde"
-    export function get_altitude(): number {
-        return altitude
+    //% block="Høyde over havet (m)"
+    //% group="Posisjon"
+    //% weight=66
+    export function altitude(): number {
+        return altitudeVal
+    }
+
+    // --------------------------------------------------------------------
+    // BEVEGELSE
+    // --------------------------------------------------------------------
+    //% block="Hastighet (m/s)"
+    //% group="Bevegelse"
+    //% weight=60
+    export function speed(): number {
+        return speedVal
+    }
+
+    //% block="Retning (grader)"
+    //% group="Bevegelse"
+    //% weight=59
+    export function course(): number {
+        return courseVal
+    }
+
+    // --------------------------------------------------------------------
+    // TID
+    // --------------------------------------------------------------------
+    //% block="Tid (UTC)"
+    //% group="Tid"
+    //% weight=50
+    export function time(): string {
+        return timeVal
+    }
+
+    //% block="Dato (UTC)"
+    //% group="Tid"
+    //% weight=49
+    export function date(): string {
+        return dateVal
+    }
+
+    // --------------------------------------------------------------------
+    // STATUS
+    // --------------------------------------------------------------------
+    //% block="Har GPS fix?"
+    //% group="Status"
+    //% weight=40
+    export function hasFix(): boolean {
+        return gpsFix
+    }
+
+    //% block="Antall satellitter"
+    //% group="Status"
+    //% weight=39
+    export function satellites(): number {
+        return satellitesVal
     }
 
     //% block="HDOP"
-    export function get_hdop(): number {
-        return hdop
+    //% group="Status"
+    //% weight=38
+    export function hdop(): number {
+        return hdopVal
     }
 
-    //% block="Fart (km/h)"
-    export function get_speed(): number {
-        return speed
+    // --------------------------------------------------------------------
+    // HENDELSER
+    // --------------------------------------------------------------------
+    //% block="Når GPS fix oppnås"
+    //% group="Hendelser"
+    //% weight=30
+    export function onFixAcquired(body: () => void) {
+        control.inBackground(function () {
+            while (true) {
+                if (gpsFix) {
+                    body()
+                    basic.pause(1000)
+                }
+                basic.pause(500)
+            }
+        })
     }
 
-    //% block="Retning"
-    export function get_course(): string {
-        return course
+    //% block="Når antall satellitter > %n"
+    //% n.defl=3
+    //% group="Hendelser"
+    //% weight=29
+    export function onSatellitesAbove(n: number, body: () => void) {
+        control.inBackground(function () {
+            while (true) {
+                if (satellitesVal > n) body()
+                basic.pause(1000)
+            }
+        })
     }
 
+    //% block="Når HDOP < %v"
+    //% v.defl=2
+    //% group="Hendelser"
+    //% weight=28
+    export function onHDOPBelow(v: number, body: () => void) {
+        control.inBackground(function () {
+            while (true) {
+                if (hdopVal < v) body()
+                basic.pause(1000)
+            }
+        })
+    }
 }
