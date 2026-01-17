@@ -1,6 +1,6 @@
 {
     "name": "GPS NEO-6M",
-    "description": "",
+    "description": "Bibliotek for NEO-6M GPS-sensor til bruk med microbit.",
     "dependencies": {
         "core": "*",
         "radio": "*",
