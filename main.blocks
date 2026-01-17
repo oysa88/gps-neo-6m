@@ -1,1 +1,1 @@
-<xml xmlns="https://developers.google.com/blockly/xml"><variables></variables><block type="pxt-on-start" id="tb;tq0zF*Ev.1GH!5orD" x="20" y="20"></block><block type="device_forever" id="ToT5:hW7RB8c$8/56$.z" x="225" y="20"></block></xml>
+<xml xmlns="https://developers.google.com/blockly/xml"><variables></variables><block type="device_forever" id="`Ml5E%W1(mnR$rajqBV`" x="0" y="0"><statement name="HANDLER"><block type="gps_init" id="8#I:A6{[E=KTH6Kc_gCc"><field name="rx">SerialPin.P0</field><field name="tx">SerialPin.P0</field></block></statement></block></xml>
