@@ -14,6 +14,7 @@ namespace neo6mGPS {
     let fartKnop = 0
     let hdop = 0
     let kurs = 0
+    let sisteNMEA = ""
 
     function brukGPS() {
         // MakeCode: serial.redirect(TX, RX, baud)
@@ -107,33 +108,43 @@ namespace neo6mGPS {
     //% rxPin.defl=SerialPin.P0
     //% group="Oppstart"
     export function startGPS(txPin: SerialPin, rxPin: SerialPin): void {
-        gpsTxPin = txPin
-        gpsRxPin = rxPin
 
-        serial.setRxBufferSize(128)
-        brukGPS()
+    gpsTxPin = txPin
+    gpsRxPin = rxPin
 
-        if (started) return
-        started = true
+    serial.setRxBufferSize(128)
 
-        serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
-            let line = serial.readLine()
+    // viktig: bytte TX/RX
+    serial.redirect(gpsRxPin, gpsTxPin, BaudRate.BaudRate9600)
 
-            if (line) {
-                line = line.replace("\r", "")
-            }
+    if (started) return
+    started = true
 
-            if (!line || line.length == 0) return
+    serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
 
-            if (line.indexOf("$GPGGA") == 0 || line.indexOf("$GNGGA") == 0) {
-                parseGGA(line)
-            }
+        let line = serial.readLine()
 
-            if (line.indexOf("$GPRMC") == 0 || line.indexOf("$GNRMC") == 0) {
-                parseRMC(line)
-            }
-        })
-    }
+        if (line) {
+            line = line.replace("\r", "")
+        }
+
+        if (!line || line.length == 0) return
+
+        // lagre rå NMEA
+        sisteNMEA = line
+
+        // parse GGA
+        if (line.indexOf("$GPGGA") == 0 || line.indexOf("$GNGGA") == 0) {
+            parseGGA(line)
+        }
+
+        // parse RMC
+        if (line.indexOf("$GPRMC") == 0 || line.indexOf("$GNRMC") == 0) {
+            parseRMC(line)
+        }
+
+    })
+}
 
     /**
      * Breddegrad i desimalgrader
@@ -235,19 +246,11 @@ namespace neo6mGPS {
     }
 
     /**
-     * Lag telemetripakke
-     */
-    //% block="telemetripakke"
-    //% group="Telemetri"
-    export function hentTelemetripakke(): string {
-        return "" + utcTid + "," +
-            breddegrad + "," +
-            lengdegrad + "," +
-            hoyde + "," +
-            satellitter + "," +
-            fix + "," +
-            round2(hdop) + "," +
-            round1(fartKnop * 1.852) + "," +
-            round1(kurs)
+    * Siste NMEA-linje
+    */
+    //% block="siste NMEA"
+    //% group="Debug"
+    export function hentNMEA(): string {
+        return sisteNMEA
     }
 }
