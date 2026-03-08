@@ -1,5 +1,5 @@
 //% weight=90 color=#FF9900 icon="\uf0ac" block="NEO-6M - GPS"
-//% groups=['Oppstart', 'Posisjon', 'Kvalitet', 'Bevegelse', 'Tid', 'Telemetri', 'other']
+//% groups=['Oppstart', 'Posisjon', 'Kvalitet', 'Bevegelse', 'Tid', 'Rådata fra GPS', 'other']
 namespace neo6mGPS {
     let gpsTxPin = SerialPin.P1
     let gpsRxPin = SerialPin.P0
@@ -249,7 +249,7 @@ namespace neo6mGPS {
     * Siste NMEA-linje
     */
     //% block="siste NMEA"
-    //% group="Debug"
+    //% group="Rådata fra GPS"
     export function hentNMEA(): string {
         return sisteNMEA
     }
